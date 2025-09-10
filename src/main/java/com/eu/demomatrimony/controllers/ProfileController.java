@@ -5,7 +5,6 @@ import com.eu.demomatrimony.interfaces.ProfileService;
 import com.eu.demomatrimony.models.Profile;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +25,7 @@ public class ProfileController {
 
 
     @GetMapping("/profile")
-    private List<ProfileDto> getAllProfiles() {
+    public List<ProfileDto> getAllProfiles() {
         List<Profile> profiles = new ArrayList<Profile>();
         profiles = profileService.getAllProfiles();
         return profiles.stream()
@@ -36,7 +35,7 @@ public class ProfileController {
     }
 
     @GetMapping("/profile/{id}")
-    private ProfileDto getProfileById(@PathVariable Long id) {
+    public ProfileDto getProfileById(@PathVariable Long id) {
 
         return modelMapper.map(
                 profileService.getProfileById(id), ProfileDto.class
@@ -44,7 +43,7 @@ public class ProfileController {
     }
 
     @PostMapping("/profile")
-    private ProfileDto addProfile(@RequestBody ProfileDto profileDto) {
+    public ProfileDto addProfile(@RequestBody ProfileDto profileDto) {
         Profile profile = modelMapper.map(profileDto, Profile.class);
 
         return modelMapper.map(
@@ -53,7 +52,7 @@ public class ProfileController {
     }
 
     @PutMapping("/profile")
-    private ProfileDto updateProfile(@RequestBody ProfileDto profileDto) {
+    public ProfileDto updateProfile(@RequestBody ProfileDto profileDto) {
         Profile profile = modelMapper.map(profileDto, Profile.class);
         return modelMapper.map(
                 profileService.updateProfile(profile), ProfileDto.class
@@ -61,7 +60,7 @@ public class ProfileController {
     }
 
     @DeleteMapping("/profile/{id}")
-    private HttpStatus deleteProfile(@PathVariable Long id) {
+    public HttpStatus deleteProfile(@PathVariable Long id) {
         profileService.deleteProfileById(id);
 
         return HttpStatus.OK;
