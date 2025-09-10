@@ -51,11 +51,11 @@ public class ProfileController {
         );
     }
 
-    @PutMapping("/profile")
-    public ProfileDto updateProfile(@RequestBody ProfileDto profileDto) {
+    @PutMapping("/profile/{id}")
+    public ProfileDto updateProfile(@PathVariable Long id, @RequestBody ProfileDto profileDto) {
         Profile profile = modelMapper.map(profileDto, Profile.class);
         return modelMapper.map(
-                profileService.updateProfile(profile), ProfileDto.class
+                profileService.updateProfile(id, profile), ProfileDto.class
         );
     }
 

@@ -1,5 +1,6 @@
 package com.eu.demomatrimony.serviceImpl;
 
+import com.eu.demomatrimony.exeptions.ResourceNotFoundException;
 import com.eu.demomatrimony.interfaces.ProfileService;
 import com.eu.demomatrimony.models.Profile;
 import com.eu.demomatrimony.repositories.ProfileRepository;
@@ -36,8 +37,8 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public Profile updateProfile(Profile newProfile) {
-        Profile existingProfile = getById(newProfile.getId());
+    public Profile updateProfile(Long id, Profile newProfile) {
+        Profile existingProfile = getById(id);
         BeanUtils.copyProperties(newProfile, existingProfile, "id");
         profileRepository.save(existingProfile);
         return existingProfile;
@@ -52,6 +53,6 @@ public class ProfileServiceImpl implements ProfileService {
 
     private Profile getById(Long id) {
         return profileRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Profile not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Profile not found with id: " + id));
     }
 }

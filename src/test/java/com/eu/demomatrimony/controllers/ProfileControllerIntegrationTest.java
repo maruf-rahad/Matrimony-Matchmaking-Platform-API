@@ -1,5 +1,6 @@
 package com.eu.demomatrimony.controllers;
 
+import com.eu.demomatrimony.dto.ProfileDto;
 import com.eu.demomatrimony.models.Profile;
 import com.eu.demomatrimony.repositories.ProfileRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,7 +18,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -119,6 +122,88 @@ class ProfileControllerIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void testAddProfile_FullDto_Success() throws Exception {
+        ProfileDto profileDto = getProfileDto();
+
+        String profileJson = objectMapper.writeValueAsString(profileDto);
+
+        mockMvc.perform(post("/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(profileJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Jane Doe"))
+                .andExpect(jsonPath("$.age").value(28))
+                .andExpect(jsonPath("$.gender").value("Female"))
+                .andExpect(jsonPath("$.birthday").value("1995-05-20"))
+                .andExpect(jsonPath("$.address").value("123 Main Street, Stockholm"))
+                .andExpect(jsonPath("$.height").value(165.0))
+                .andExpect(jsonPath("$.weight").value(60.0))
+                .andExpect(jsonPath("$.email").value("jane@example.com"))
+                .andExpect(jsonPath("$.phone").value("9876543210"))
+                .andExpect(jsonPath("$.education").value("Master's in Computer Science"))
+                .andExpect(jsonPath("$.ethnicity").value("Caucasian"))
+                .andExpect(jsonPath("$.maritalStatus").value("Single"))
+                .andExpect(jsonPath("$.nationality").value("Swedish"))
+                .andExpect(jsonPath("$.secondNationality").value("Finnish"))
+                .andExpect(jsonPath("$.motherName").value("Mary Doe"))
+                .andExpect(jsonPath("$.fatherName").value("John Doe Sr."))
+                .andExpect(jsonPath("$.motherOccupation").value("Teacher"))
+                .andExpect(jsonPath("$.fatherOccupation").value("Engineer"))
+                .andExpect(jsonPath("$.numberOfSiblings").value("1"));
+    }
+
+    @Test
+    void testUpdateProfile_Success() throws Exception {
+
+        ProfileDto updatedDto = getProfileDto();
+
+        String updatedJson = objectMapper.writeValueAsString(updatedDto);
+
+        mockMvc.perform(put("/profile/{id}", savedProfile.get(1).getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatedJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value(updatedDto.getName()))
+                .andExpect(jsonPath("$.age").value(updatedDto.getAge()))
+                .andExpect(jsonPath("$.gender").value(updatedDto.getGender()))
+                .andExpect(jsonPath("$.birthday").value(updatedDto.getBirthday()))
+                .andExpect(jsonPath("$.address").value(updatedDto.getAddress()))
+                .andExpect(jsonPath("$.height").value(updatedDto.getHeight()))
+                .andExpect(jsonPath("$.weight").value(updatedDto.getWeight()))
+                .andExpect(jsonPath("$.email").value(updatedDto.getEmail()))
+                .andExpect(jsonPath("$.phone").value(updatedDto.getPhone()))
+                .andExpect(jsonPath("$.education").value(updatedDto.getEducation()))
+                .andExpect(jsonPath("$.ethnicity").value(updatedDto.getEthnicity()))
+                .andExpect(jsonPath("$.maritalStatus").value(updatedDto.getMaritalStatus()))
+                .andExpect(jsonPath("$.nationality").value(updatedDto.getNationality()))
+                .andExpect(jsonPath("$.secondNationality").value(updatedDto.getSecondNationality()))
+                .andExpect(jsonPath("$.motherName").value(updatedDto.getMotherName()))
+                .andExpect(jsonPath("$.fatherName").value(updatedDto.getFatherName()))
+                .andExpect(jsonPath("$.fatherOccupation").value(updatedDto.getFatherOccupation()))
+                .andExpect(jsonPath("$.motherOccupation").value(updatedDto.getMotherOccupation()))
+                .andExpect(jsonPath("$.numberOfSiblings").value(updatedDto.getNumberOfSiblings()));
+    }
+
+    @Test
+    void testDeleteProfile_Success() throws Exception {
+        mockMvc.perform(delete("/profile/{id}", savedProfile.get(0).getId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        assertFalse(profileRepository.findById(savedProfile.get(0).getId()).isPresent());
+    }
+
+    @Test
+    void testDeleteProfile_NotFound() throws Exception {
+        Long invalidId = 999L;
+
+        mockMvc.perform(delete("/profile/{id}", invalidId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+
     private Profile getProfile1(){
         Profile profile1 = new Profile();
         profile1.setName("John Doe");
@@ -167,6 +252,32 @@ class ProfileControllerIntegrationTest {
         profile2.setNumberOfSiblings("1");
 
         return profile2;
+    }
+
+    ProfileDto getProfileDto(){
+
+        ProfileDto profileDto = new ProfileDto();
+        profileDto.setName("Jane Doe");
+        profileDto.setAge(28L);
+        profileDto.setGender("Female");
+        profileDto.setBirthday("1995-05-20");
+        profileDto.setAddress("123 Main Street, Stockholm");
+        profileDto.setHeight(165.0);
+        profileDto.setWeight(60.0);
+        profileDto.setEmail("jane@example.com");
+        profileDto.setPhone("9876543210");
+        profileDto.setEducation("Master's in Computer Science");
+        profileDto.setEthnicity("Caucasian");
+        profileDto.setMaritalStatus("Single");
+        profileDto.setNationality("Swedish");
+        profileDto.setSecondNationality("Finnish");
+        profileDto.setMotherName("Mary Doe");
+        profileDto.setFatherName("John Doe Sr.");
+        profileDto.setMotherOccupation("Teacher");
+        profileDto.setFatherOccupation("Engineer");
+        profileDto.setNumberOfSiblings("1");
+
+        return profileDto;
     }
 
 

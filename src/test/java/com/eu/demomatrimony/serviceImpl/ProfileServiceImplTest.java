@@ -1,5 +1,6 @@
 package com.eu.demomatrimony.serviceImpl;
 
+import com.eu.demomatrimony.exeptions.ResourceNotFoundException;
 import com.eu.demomatrimony.models.Profile;
 import com.eu.demomatrimony.repositories.ProfileRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,7 +77,7 @@ class ProfileServiceImplTest {
     void testGetProfileById_NotFound() {
         when(profileRepository.findById(5L)).thenReturn(Optional.empty());
 
-        NoSuchElementException elementException = assertThrows(NoSuchElementException.class,
+        ResourceNotFoundException elementException = assertThrows(ResourceNotFoundException.class,
                 () -> profileService.getProfileById(5L));
         assertEquals("Profile not found with id: 5", elementException.getMessage());
 
@@ -108,7 +109,7 @@ class ProfileServiceImplTest {
         when(profileRepository.findById(1L)).thenReturn(Optional.of(profile));
         when(profileRepository.save(any(Profile.class))).thenReturn(updatedProfile);
 
-        Profile result = profileService.updateProfile(updatedProfile);
+        Profile result = profileService.updateProfile(1L, updatedProfile);
 
         assertNotNull(result);
         assertEquals("Rahad", result.getName());

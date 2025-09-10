@@ -13,7 +13,7 @@ public interface ProfileService {
 
     public Profile createProfile(Profile profile);
 
-    public Profile updateProfile(Profile profile);
+    public Profile updateProfile(Long id, Profile profile);
 
     public void deleteProfileById(Long id);
 }
