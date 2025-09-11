@@ -1,7 +1,7 @@
 package com.eu.demomatrimony.controllers;
 
 import com.eu.demomatrimony.dto.ProfileDto;
-import com.eu.demomatrimony.interfaces.ProfileService;
+import com.eu.demomatrimony.service.ProfileService;
 import com.eu.demomatrimony.models.Profile;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.modelmapper.ModelMapper;

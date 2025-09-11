@@ -1,14 +1,13 @@
 package com.eu.demomatrimony.serviceImpl;
 
 import com.eu.demomatrimony.exeptions.ResourceNotFoundException;
-import com.eu.demomatrimony.interfaces.ProfileService;
+import com.eu.demomatrimony.service.ProfileService;
 import com.eu.demomatrimony.models.Profile;
 import com.eu.demomatrimony.repositories.ProfileRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {

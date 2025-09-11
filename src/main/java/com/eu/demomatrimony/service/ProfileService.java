@@ -1,4 +1,4 @@
-package com.eu.demomatrimony.interfaces;
+package com.eu.demomatrimony.service;
 
 
 import com.eu.demomatrimony.models.Profile;
