@@ -73,5 +73,17 @@ public abstract class BaseModel {
     public void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt = deletedAt;
     }
+
+    @Override
+    public String toString() {
+        return "BaseModel{" +
+                "createdBy='" + createdBy + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedBy='" + updatedBy + '\'' +
+                ", updatedAt=" + updatedAt +
+                ", deletedBy='" + deletedBy + '\'' +
+                ", deletedAt=" + deletedAt +
+                '}';
+    }
 }
 
