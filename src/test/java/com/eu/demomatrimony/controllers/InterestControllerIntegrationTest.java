@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -17,6 +18,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -64,8 +66,10 @@ class InterestControllerIntegrationTest {
     }
 
     @Test
+    @WithMockUser
     void testSendInterest_Success() throws Exception {
         mockMvc.perform(post("/interests/send")
+                        .with(csrf())
                         .param("senderId", sender.getId().toString())
                         .param("receiverId", receiver.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON))
@@ -78,8 +82,10 @@ class InterestControllerIntegrationTest {
     }
 
     @Test
+    @WithMockUser
     void testSendInterest_SelfInterest_BadRequest() throws Exception {
         mockMvc.perform(post("/interests/send")
+                        .with(csrf())
                         .param("senderId", sender.getId().toString())
                         .param("receiverId", sender.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON))
@@ -87,9 +93,11 @@ class InterestControllerIntegrationTest {
     }
 
     @Test
+    @WithMockUser
     void testGetReceivedInterests() throws Exception {
         // Send initial interest request
         mockMvc.perform(post("/interests/send")
+                        .with(csrf())
                         .param("senderId", sender.getId().toString())
                         .param("receiverId", receiver.getId().toString()))
                 .andExpect(status().isOk());

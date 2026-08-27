@@ -72,7 +72,7 @@ public class ProfileController {
         return HttpStatus.OK;
     }
 
-    @PostMapping("/search")
+    @PostMapping("/profile/search")
     public ResponseEntity<Page<ProfileDto>> searchProfiles(
             @RequestBody PartnerPreferenceDto criteria,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {

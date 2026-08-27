@@ -12,12 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -72,6 +74,7 @@ class MatchControllerIntegrationTest {
     }
 
     @Test
+    @WithMockUser
     void testSaveAndGetPreferences_Success() throws Exception {
         PartnerPreferenceDto dto = new PartnerPreferenceDto();
         dto.setPreferredGender("Female");
@@ -79,8 +82,9 @@ class MatchControllerIntegrationTest {
         dto.setMaxAge(28L);
         dto.setPreferredCity("Stockholm");
 
-        // 1. Save preferences
+        // 1. Save preferences (requires CSRF)
         mockMvc.perform(post("/matches/preferences/{profileId}", user.getId())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk())
@@ -96,6 +100,7 @@ class MatchControllerIntegrationTest {
     }
 
     @Test
+    @WithMockUser
     void testGetMatches_Success() throws Exception {
         // Save preference targeting the candidate profile
         PartnerPreferenceDto dto = new PartnerPreferenceDto();
@@ -107,20 +112,22 @@ class MatchControllerIntegrationTest {
         dto.setPreferredMaritalStatus("Single");
 
         mockMvc.perform(post("/matches/preferences/{profileId}", user.getId())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk());
 
-        // Get Top Matches feed
+        // Get Top Matches feed (Paginated response mapping)
         mockMvc.perform(get("/matches/{profileId}", user.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].candidateProfile.name").value("Jane"))
-                .andExpect(jsonPath("$[0].matchPercentage").value(100.0));
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].candidateProfile.name").value("Jane"))
+                .andExpect(jsonPath("$.content[0].matchPercentage").value(100.0));
     }
 
     @Test
+    @WithMockUser
     void testGetMatches_PreferencesNotFound_Returns404() throws Exception {
         mockMvc.perform(get("/matches/{profileId}", user.getId())
                         .contentType(MediaType.APPLICATION_JSON))

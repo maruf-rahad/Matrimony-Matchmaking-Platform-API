@@ -1,5 +1,6 @@
 package com.eu.demomatrimony.controllers;
 
+import com.eu.demomatrimony.dto.PartnerPreferenceDto;
 import com.eu.demomatrimony.dto.ProfileDto;
 import com.eu.demomatrimony.models.Profile;
 import com.eu.demomatrimony.repositories.ProfileRepository;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -19,6 +21,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -27,8 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @TestPropertySource(locations = "classpath:application-test.properties")
 @Transactional
+@WithMockUser
 class ProfileControllerIntegrationTest {
-
 
     @Autowired
     private MockMvc mockMvc;
@@ -42,7 +45,7 @@ class ProfileControllerIntegrationTest {
     @Autowired
     private ModelMapper modelMapper;
 
-    private List<Profile>savedProfile;
+    private List<Profile> savedProfile;
 
     @BeforeEach
     void setUp() {
@@ -58,7 +61,6 @@ class ProfileControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
-
                 .andExpect(jsonPath("$[0].name").value("John Doe"))
                 .andExpect(jsonPath("$[0].age").value(30))
                 .andExpect(jsonPath("$[0].gender").value("Male"))
@@ -128,6 +130,7 @@ class ProfileControllerIntegrationTest {
         String profileJson = objectMapper.writeValueAsString(profileDto);
 
         mockMvc.perform(post("/profile")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(profileJson))
                 .andExpect(status().isOk())
@@ -160,6 +163,7 @@ class ProfileControllerIntegrationTest {
         String updatedJson = objectMapper.writeValueAsString(updatedDto);
 
         mockMvc.perform(put("/profile/{id}", savedProfile.get(1).getId())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updatedJson))
                 .andExpect(status().isOk())
@@ -187,6 +191,7 @@ class ProfileControllerIntegrationTest {
     @Test
     void testDeleteProfile_Success() throws Exception {
         mockMvc.perform(delete("/profile/{id}", savedProfile.get(0).getId())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
@@ -198,12 +203,44 @@ class ProfileControllerIntegrationTest {
         Long invalidId = 999L;
 
         mockMvc.perform(delete("/profile/{id}", invalidId)
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void testSearchProfiles_ByQuery_Success() throws Exception {
+        PartnerPreferenceDto criteria = new PartnerPreferenceDto();
+        criteria.setPreferredGender("Male"); // Filter specifically for John Doe
 
-    private Profile getProfile1(){
+        String jsonBody = objectMapper.writeValueAsString(criteria);
+
+        mockMvc.perform(post("/profile/search")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].name").value("John Doe"))
+                .andExpect(jsonPath("$.content[0].email").value("john@example.com"));
+    }
+
+    @Test
+    void testSearchProfiles_NoMatch() throws Exception {
+        PartnerPreferenceDto criteria = new PartnerPreferenceDto();
+        criteria.setPreferredGender("NonExistentGender"); // Filter that matches zero profiles
+
+        String jsonBody = objectMapper.writeValueAsString(criteria);
+
+        mockMvc.perform(post("/profile/search")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(0));
+    }
+
+    private Profile getProfile1() {
         Profile profile1 = new Profile();
         profile1.setName("John Doe");
         profile1.setAge(30L);
@@ -228,7 +265,7 @@ class ProfileControllerIntegrationTest {
         return profile1;
     }
 
-    private Profile getProfile2(){
+    private Profile getProfile2() {
         Profile profile2 = new Profile();
         profile2.setName("Jane Smith");
         profile2.setAge(28L);
@@ -253,8 +290,7 @@ class ProfileControllerIntegrationTest {
         return profile2;
     }
 
-    ProfileDto getProfileDto(){
-
+    ProfileDto getProfileDto() {
         ProfileDto profileDto = new ProfileDto();
         profileDto.setName("Jane Doe");
         profileDto.setAge(28L);
@@ -278,6 +314,4 @@ class ProfileControllerIntegrationTest {
 
         return profileDto;
     }
-
-
 }

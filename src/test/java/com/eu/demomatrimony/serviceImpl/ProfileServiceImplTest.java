@@ -1,5 +1,7 @@
 package com.eu.demomatrimony.serviceImpl;
 
+import com.eu.demomatrimony.dto.PartnerPreferenceDto;
+import com.eu.demomatrimony.dto.ProfileDto;
 import com.eu.demomatrimony.exeptions.ResourceNotFoundException;
 import com.eu.demomatrimony.models.Profile;
 import com.eu.demomatrimony.repositories.ProfileRepository;
@@ -8,6 +10,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.parameters.P;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -24,6 +32,9 @@ class ProfileServiceImplTest {
 
     @InjectMocks
     private ProfileServiceImpl profileService;
+
+    @Mock
+    private ModelMapper modelMapper;
 
     @BeforeEach
     void setUp() {
@@ -132,6 +143,37 @@ class ProfileServiceImplTest {
         verify(profileRepository, times(1)).deleteById(1L);
     }
 
+    @Test
+    void searchProfiles_ShouldReturnPaginatedProfiles() {
+        PartnerPreferenceDto criteria = new PartnerPreferenceDto();
+        criteria.setPreferredCity("Stockholm");
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Profile profile = getProfile();
+        Page<Profile> profilePage = new PageImpl<>(List.of(profile), pageable, 1);
+
+        when(profileRepository.searchProfiles(any(), any(), any(), eq("Stockholm"), any(), any(), eq(pageable)))
+                .thenReturn(profilePage);
+        when(modelMapper.map(profile, ProfileDto.class)).thenReturn(getProfileDto());
+
+        Page<ProfileDto> result = profileService.searchProfiles(criteria, pageable);
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals("Maruf", result.getContent().get(0).getName());
+    }
+
+    ProfileDto getProfileDto() {
+        ProfileDto profileDto = new ProfileDto();
+        profileDto.setId(1L);
+        profileDto.setName("Maruf");
+        profileDto.setAge(28L);
+        profileDto.setGender("Male");
+        profileDto.setBirthday(LocalDate.of(1997, 5, 20).toString());
+        profileDto.setEmail("maruf@example.com");
+
+        return profileDto;
+    }
+
     private Profile getProfile() {
         Profile profile = new Profile();
         profile.setId(1L);
@@ -155,4 +197,6 @@ class ProfileServiceImplTest {
 
         return profile;
     }
+
+
 }
