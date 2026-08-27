@@ -114,9 +114,12 @@ class MatchServiceImplTest {
         when(modelMapper.map(candidateProfile, ProfileDto.class)).thenReturn(candidateDto);
 
         Page<MatchResultDto> matches = matchService.getTopMatchesForProfile(1L, PageRequest.of(0, 10));
-        assertEquals(2, matches.getTotalElements());
-        MatchResultDto match1 = matches.getContent().get(0);
-        MatchResultDto match2 = matches.getContent().get(1);
+
+        // Excludes self (userProfile ID 1L), leaving 1 candidate
+        assertEquals(1, matches.getTotalElements());
+
+        MatchResultDto match = matches.getContent().get(0);
+        assertEquals("Alice", match.getCandidateProfile().getName());
     }
 
     @Test
