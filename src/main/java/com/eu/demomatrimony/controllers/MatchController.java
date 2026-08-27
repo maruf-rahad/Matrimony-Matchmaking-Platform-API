@@ -4,6 +4,9 @@ import com.eu.demomatrimony.dto.MatchResultDto;
 import com.eu.demomatrimony.dto.PartnerPreferenceDto;
 import com.eu.demomatrimony.service.MatchService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +36,9 @@ public class MatchController {
     }
 
     @GetMapping("/{profileId}")
-    public ResponseEntity<List<MatchResultDto>> getMatches(@PathVariable Long profileId) {
-        return ResponseEntity.ok(matchService.getTopMatchesForProfile(profileId));
+    public ResponseEntity<Page<MatchResultDto>> getMatches(
+            @PathVariable Long profileId,
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(matchService.getTopMatchesForProfile(profileId, pageable));
     }
 }

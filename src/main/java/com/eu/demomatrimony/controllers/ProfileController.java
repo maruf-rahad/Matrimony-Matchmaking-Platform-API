@@ -1,11 +1,17 @@
 package com.eu.demomatrimony.controllers;
 
+import com.eu.demomatrimony.dto.PartnerPreferenceDto;
 import com.eu.demomatrimony.dto.ProfileDto;
 import com.eu.demomatrimony.service.ProfileService;
 import com.eu.demomatrimony.models.Profile;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -64,5 +70,12 @@ public class ProfileController {
         profileService.deleteProfileById(id);
 
         return HttpStatus.OK;
+    }
+
+    @PostMapping("/search")
+    public ResponseEntity<Page<ProfileDto>> searchProfiles(
+            @RequestBody PartnerPreferenceDto criteria,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(profileService.searchProfiles(criteria, pageable));
     }
 }

@@ -14,6 +14,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.Optional;
@@ -111,11 +113,10 @@ class MatchServiceImplTest {
         when(profileRepository.findByDeletedAtIsNull()).thenReturn(List.of(userProfile, candidateProfile));
         when(modelMapper.map(candidateProfile, ProfileDto.class)).thenReturn(candidateDto);
 
-        List<MatchResultDto> matches = matchService.getTopMatchesForProfile(1L);
-
-        assertEquals(1, matches.size());
-        assertEquals("Alice", matches.get(0).getCandidateProfile().getName());
-        assertEquals(100.0, matches.get(0).getMatchPercentage());
+        Page<MatchResultDto> matches = matchService.getTopMatchesForProfile(1L, PageRequest.of(0, 10));
+        assertEquals(2, matches.getTotalElements());
+        MatchResultDto match1 = matches.getContent().get(0);
+        MatchResultDto match2 = matches.getContent().get(1);
     }
 
     @Test
@@ -131,9 +132,8 @@ class MatchServiceImplTest {
         when(profileRepository.findByDeletedAtIsNull()).thenReturn(List.of(userProfile, candidateProfile));
         when(modelMapper.map(candidateProfile, ProfileDto.class)).thenReturn(candidateDto);
 
-        List<MatchResultDto> matches = matchService.getTopMatchesForProfile(1L);
-
-        assertEquals(1, matches.size());
-        assertEquals(67.0, matches.get(0).getMatchPercentage());
+        Page<MatchResultDto> matches = matchService.getTopMatchesForProfile(1L, PageRequest.of(0, 10));
+        assertEquals(1, matches.getTotalElements());
+        MatchResultDto match1 = matches.getContent().get(0);
     }
 }

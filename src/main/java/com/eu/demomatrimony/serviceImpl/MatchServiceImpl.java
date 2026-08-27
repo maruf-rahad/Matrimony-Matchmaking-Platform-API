@@ -10,9 +10,13 @@ import com.eu.demomatrimony.repositories.PartnerPreferenceRepository;
 import com.eu.demomatrimony.repositories.ProfileRepository;
 import com.eu.demomatrimony.service.MatchService;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -66,7 +70,7 @@ public class MatchServiceImpl implements MatchService {
     }
 
     @Override
-    public List<MatchResultDto> getTopMatchesForProfile(Long profileId) {
+    public Page<MatchResultDto> getTopMatchesForProfile(Long profileId, Pageable pageable) {
         PartnerPreference pref = preferenceRepository.findByProfileId(profileId)
                 .orElseThrow(() -> new ResourceNotFoundException("Preferences not configured for profile: " + profileId));
 
@@ -84,8 +88,16 @@ public class MatchServiceImpl implements MatchService {
             }
         }
 
+        // Sort descending by match score
         matches.sort(Comparator.comparingDouble(MatchResultDto::getMatchPercentage).reversed());
-        return matches;
+
+        // Apply Pageable slicing in memory for score-ranked matches
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), matches.size());
+
+        List<MatchResultDto> pageContent = (start <= matches.size()) ? matches.subList(start, end) : Collections.emptyList();
+
+        return new PageImpl<>(pageContent, pageable, matches.size());
     }
 
     private double calculateScore(PartnerPreference pref, Profile candidate) {
