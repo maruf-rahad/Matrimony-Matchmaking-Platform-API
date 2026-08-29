@@ -1,0 +1,42 @@
+package com.eu.matrimonybackend.controllers;
+
+import com.eu.matrimonybackend.dto.MatchResultDto;
+import com.eu.matrimonybackend.dto.PartnerPreferenceDto;
+import com.eu.matrimonybackend.service.MatchService;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/matches")
+@Tag(name = "Match & Compatibility APIs", description = "Endpoints for managing partner preferences and match scoring")
+public class MatchController {
+
+    private final MatchService matchService;
+
+    public MatchController(MatchService matchService) {
+        this.matchService = matchService;
+    }
+
+    @PostMapping("/preferences/{profileId}")
+    public ResponseEntity<PartnerPreferenceDto> savePreferences(
+            @PathVariable Long profileId,
+            @RequestBody PartnerPreferenceDto preferenceDto) {
+        return ResponseEntity.ok(matchService.saveOrUpdatePreferences(profileId, preferenceDto));
+    }
+
+    @GetMapping("/preferences/{profileId}")
+    public ResponseEntity<PartnerPreferenceDto> getPreferences(@PathVariable Long profileId) {
+        return ResponseEntity.ok(matchService.getPreferencesByProfileId(profileId));
+    }
+
+    @GetMapping("/{profileId}")
+    public ResponseEntity<Page<MatchResultDto>> getMatches(
+            @PathVariable Long profileId,
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(matchService.getTopMatchesForProfile(profileId, pageable));
+    }
+}

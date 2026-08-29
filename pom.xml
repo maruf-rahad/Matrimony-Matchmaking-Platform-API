@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.eu</groupId>
-	<artifactId>demomatrimony</artifactId>
+	<artifactId>matrimony-matchmaking-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>demomatrimony</name>
-	<description>Demo project for Spring Boot</description>
+	<name>Matrimony &amp; Matchmaking Platform API</name>
+	<description>Backend service API for profile management, matchmaking, interests, and chat</description>
 	<url/>
 	<licenses>
 		<license/>
