@@ -8,11 +8,15 @@ import com.eu.matrimonybackend.models.Profile;
 import com.eu.matrimonybackend.repositories.ChatMessageRepository;
 import com.eu.matrimonybackend.repositories.InterestRepository;
 import com.eu.matrimonybackend.repositories.ProfileRepository;
+import com.eu.matrimonybackend.repositories.projections.UnreadCountBySender;
 import com.eu.matrimonybackend.service.ChatService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ChatServiceImpl implements ChatService {
@@ -60,7 +64,8 @@ public class ChatServiceImpl implements ChatService {
                 saved.getSender().getId(),
                 saved.getReceiver().getId(),
                 saved.getContent(),
-                saved.getTimestamp()
+                saved.getTimestamp(),
+                saved.isRead()
         );
     }
 
@@ -72,8 +77,26 @@ public class ChatServiceImpl implements ChatService {
                         msg.getSender().getId(),
                         msg.getReceiver().getId(),
                         msg.getContent(),
-                        msg.getTimestamp()
+                        msg.getTimestamp(),
+                        msg.isRead()
                 ))
                 .toList();
+    }
+
+    @Override
+    public long countUnreadMessages(Long receiverId) {
+        return chatMessageRepository.countByReceiverIdAndReadFalse(receiverId);
+    }
+
+    @Override
+    public Map<Long, Long> countUnreadMessagesGroupedBySender(Long receiverId) {
+        return chatMessageRepository.countUnreadGroupedBySender(receiverId).stream()
+                .collect(Collectors.toMap(UnreadCountBySender::getSenderId, UnreadCountBySender::getCount));
+    }
+
+    @Override
+    @Transactional
+    public void markMessagesRead(Long senderId, Long receiverId) {
+        chatMessageRepository.markMessagesRead(senderId, receiverId);
     }
 }

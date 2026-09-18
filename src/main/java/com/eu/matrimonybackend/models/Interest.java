@@ -26,6 +26,17 @@ public class Interest extends BaseModel {
     @Column(nullable = false)
     private InterestStatus status;
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean seen = false;
+
+    public boolean isSeen() {
+        return seen;
+    }
+
+    public void setSeen(boolean seen) {
+        this.seen = seen;
+    }
+
     public Long getId() {
         return id;
     }

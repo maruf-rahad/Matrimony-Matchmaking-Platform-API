@@ -10,6 +10,7 @@ import com.eu.matrimonybackend.repositories.ProfileRepository;
 import com.eu.matrimonybackend.service.InterestService;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -44,6 +45,7 @@ public class InterestServiceImpl implements InterestService {
         interest.setSender(sender);
         interest.setReceiver(receiver);
         interest.setStatus(InterestStatus.PENDING);
+        interest.setSeen(false);
         interest.setCreatedAt(LocalDateTime.now());
 
         return modelMapper.map(interestRepository.save(interest), InterestDto.class);
@@ -62,9 +64,32 @@ public class InterestServiceImpl implements InterestService {
 
     @Override
     public List<InterestDto> getReceivedInterests(Long receiverId, InterestStatus status) {
-        return interestRepository.findByReceiverIdAndStatus(receiverId, status)
-                .stream()
+        List<Interest> interests = status == null
+                ? interestRepository.findByReceiverId(receiverId)
+                : interestRepository.findByReceiverIdAndStatus(receiverId, status);
+        return interests.stream()
                 .map(interest -> modelMapper.map(interest, InterestDto.class))
                 .toList();
+    }
+
+    @Override
+    public List<InterestDto> getSentInterests(Long senderId, InterestStatus status) {
+        List<Interest> interests = status == null
+                ? interestRepository.findBySenderId(senderId)
+                : interestRepository.findBySenderIdAndStatus(senderId, status);
+        return interests.stream()
+                .map(interest -> modelMapper.map(interest, InterestDto.class))
+                .toList();
+    }
+
+    @Override
+    public long countUnreadReceivedInterests(Long receiverId) {
+        return interestRepository.countByReceiverIdAndStatusAndSeenFalse(receiverId, InterestStatus.PENDING);
+    }
+
+    @Override
+    @Transactional
+    public void markReceivedInterestsSeen(Long receiverId) {
+        interestRepository.markReceivedInterestsSeen(receiverId);
     }
 }

@@ -8,15 +8,17 @@ public class ChatMessageDto {
     private Long receiverId;
     private String content;
     private LocalDateTime timestamp;
+    private boolean isRead;
 
     public ChatMessageDto() {}
 
-    public ChatMessageDto(Long id, Long senderId, Long receiverId, String content, LocalDateTime timestamp) {
+    public ChatMessageDto(Long id, Long senderId, Long receiverId, String content, LocalDateTime timestamp, boolean isRead) {
         this.id = id;
         this.senderId = senderId;
         this.receiverId = receiverId;
         this.content = content;
         this.timestamp = timestamp;
+        this.isRead = isRead;
     }
 
     public Long getId() { return id; }
@@ -33,4 +35,7 @@ public class ChatMessageDto {
 
     public LocalDateTime getTimestamp() { return timestamp; }
     public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+
+    public boolean getIsRead() { return isRead; }
+    public void setIsRead(boolean isRead) { this.isRead = isRead; }
 }

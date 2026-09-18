@@ -1,6 +1,8 @@
 package com.eu.matrimonybackend.controllers;
 
 import com.eu.matrimonybackend.dto.ChatMessageDto;
+import com.eu.matrimonybackend.dto.NotificationDto;
+import com.eu.matrimonybackend.enums.NotificationType;
 import com.eu.matrimonybackend.service.ChatService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +35,14 @@ public class ChatController {
                 "/topic/messages/" + savedMessage.getReceiverId(),
                 savedMessage
         );
+
+        NotificationDto notification = new NotificationDto(
+                NotificationType.CHAT_MESSAGE,
+                savedMessage.getSenderId(),
+                savedMessage.getReceiverId(),
+                savedMessage.getId(),
+                savedMessage.getTimestamp());
+        messagingTemplate.convertAndSend("/topic/notifications/" + savedMessage.getReceiverId(), notification);
     }
 
     // REST endpoint to load past conversation history
@@ -40,5 +50,11 @@ public class ChatController {
     public ResponseEntity<List<ChatMessageDto>> getChatHistory(@PathVariable Long user1Id,
                                                                @PathVariable Long user2Id) {
         return ResponseEntity.ok(chatService.getChatHistory(user1Id, user2Id));
+    }
+
+    @PutMapping("/chat/mark-read/{senderId}")
+    public ResponseEntity<Void> markRead(@PathVariable Long senderId, @RequestParam Long receiverId) {
+        chatService.markMessagesRead(senderId, receiverId);
+        return ResponseEntity.noContent().build();
     }
 }

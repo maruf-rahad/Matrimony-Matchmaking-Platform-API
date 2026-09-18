@@ -25,6 +25,9 @@ public class ChatMessage extends BaseModel {
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean read = false;
+
     public ChatMessage() {}
 
     public Long getId() { return id; }
@@ -41,4 +44,7 @@ public class ChatMessage extends BaseModel {
 
     public LocalDateTime getTimestamp() { return timestamp; }
     public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+
+    public boolean isRead() { return read; }
+    public void setRead(boolean read) { this.read = read; }
 }

@@ -9,4 +9,10 @@ public interface InterestService {
     InterestDto sendInterest(Long senderId, Long receiverId);
     InterestDto updateInterestStatus(Long interestId, InterestStatus status);
     List<InterestDto> getReceivedInterests(Long receiverId, InterestStatus status);
+
+    List<InterestDto> getSentInterests(Long senderId, InterestStatus status);
+
+    long countUnreadReceivedInterests(Long receiverId);
+
+    void markReceivedInterestsSeen(Long receiverId);
 }
