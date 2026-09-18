@@ -39,6 +39,15 @@ public class AuthServiceImpl implements AuthService {
         this.tokenProvider = tokenProvider;
     }
 
+    /**
+     * Registers a new user account with a default {@code ROLE_USER}, creating and linking a
+     * blank {@link Profile} the user can fill in later.
+     *
+     * @param request the registration payload (email, raw password, and display name); the
+     *                password is BCrypt-hashed before persistence and never stored in plain text
+     * @return a human-readable confirmation message
+     * @throws IllegalArgumentException if the email is already registered
+     */
     @Override
     public String register(RegisterRequestDto request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -60,6 +69,15 @@ public class AuthServiceImpl implements AuthService {
         return "User registered successfully!";
     }
 
+    /**
+     * Authenticates a user's credentials and, on success, issues a signed JWT for subsequent
+     * requests.
+     *
+     * @param request the login payload containing email and raw password
+     * @return an {@link AuthResponseDto} wrapping the issued JWT
+     * @throws org.springframework.security.core.AuthenticationException if the email/password
+     *         combination does not match any account
+     */
     @Override
     public AuthResponseDto login(LoginRequestDto request) {
         Authentication authentication;

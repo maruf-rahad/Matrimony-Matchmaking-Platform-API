@@ -30,6 +30,17 @@ public class InterestServiceImpl implements InterestService {
         this.modelMapper = modelMapper;
     }
 
+    /**
+     * Sends (or re-sends) an interest request from one profile to another. If a request already
+     * exists between this pair, it is reset to {@code PENDING} and marked unseen rather than
+     * creating a duplicate row, so declining and re-sending an interest works as expected.
+     *
+     * @param senderId the profile initiating the request
+     * @param receiverId the profile being requested; cannot equal {@code senderId}
+     * @return the resulting interest, in {@code PENDING} status
+     * @throws IllegalArgumentException if the sender and receiver are the same profile
+     * @throws com.eu.matrimonybackend.exeptions.ResourceNotFoundException if either profile does not exist
+     */
     @Override
     public InterestDto sendInterest(Long senderId, Long receiverId) {
         if (senderId.equals(receiverId)) {

@@ -74,6 +74,14 @@ public class AdminServiceImpl implements AdminService {
         return toDetailDto(profile);
     }
 
+    /**
+     * Permanently deletes a profile and every record that depends on it, so no orphaned rows
+     * are left behind: chat history and interests in either direction, partner preferences, and
+     * finally the owning {@code User} account (or the bare profile, if it has no linked account).
+     *
+     * @param id the profile ID to delete
+     * @throws com.eu.matrimonybackend.exeptions.ResourceNotFoundException if no profile exists with this ID
+     */
     @Override
     public void deleteProfile(Long id) {
         Profile profile = getProfileOrThrow(id);
@@ -87,6 +95,15 @@ public class AdminServiceImpl implements AdminService {
         log.info("Admin deleted user profile: {}", id);
     }
 
+    /**
+     * Grants {@code ROLE_ADMIN} to a user, either by promoting an existing account matched by
+     * email or, if none exists, creating a brand-new admin account (which also requires a
+     * password, since there is no existing credential to reuse).
+     *
+     * @param request the target email/name, plus a password required only when creating a new account
+     * @return the resulting admin account's summary, including its full role set
+     * @throws IllegalArgumentException if creating a new account without a password
+     */
     @Override
     public AdminUserDto createAdmin(CreateAdminRequestDto request) {
         User user = userRepository.findByEmail(request.getEmail()).orElse(null);
@@ -123,6 +140,14 @@ public class AdminServiceImpl implements AdminService {
                 .toList();
     }
 
+    /**
+     * Revokes {@code ROLE_ADMIN} from a user, demoting them rather than deleting the account.
+     * If admin was their only role, {@code ROLE_USER} is granted back so they aren't left with
+     * no roles at all.
+     *
+     * @param userId the ID of the user (not the profile) to demote
+     * @throws com.eu.matrimonybackend.exeptions.ResourceNotFoundException if no user exists with this ID
+     */
     @Override
     public void revokeAdminRole(Long userId) {
         User user = userRepository.findById(userId)

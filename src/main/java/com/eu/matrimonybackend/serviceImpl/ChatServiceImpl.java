@@ -35,6 +35,16 @@ public class ChatServiceImpl implements ChatService {
         this.interestRepository = interestRepository;
     }
 
+    /**
+     * Persists a chat message after verifying the sender and receiver have an ACCEPTED interest
+     * connection in either direction — messaging is only allowed between matched profiles, not
+     * arbitrary users.
+     *
+     * @param messageDto the message to send; only sender ID, receiver ID, and content are read
+     * @return the saved message, including its generated ID, server timestamp, and unread state
+     * @throws IllegalArgumentException if the sender and receiver have no ACCEPTED interest connection
+     * @throws com.eu.matrimonybackend.exeptions.ResourceNotFoundException if either profile does not exist
+     */
     @Override
     public ChatMessageDto sendMessage(ChatMessageDto messageDto) {
         Long senderId = messageDto.getSenderId();

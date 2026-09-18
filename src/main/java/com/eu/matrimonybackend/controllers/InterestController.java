@@ -26,6 +26,15 @@ public class InterestController {
         this.messagingTemplate = messagingTemplate;
     }
 
+    /**
+     * Creates an interest request and immediately pushes a real-time notification to the
+     * receiver's personal WebSocket topic, so their unread-interest badge updates live without
+     * needing to poll or refresh.
+     *
+     * @param senderId the profile sending the request
+     * @param receiverId the profile receiving the request, and the recipient of the notification
+     * @return the created interest request
+     */
     @PostMapping("/send")
     public ResponseEntity<InterestDto> sendInterest(@RequestParam Long senderId, @RequestParam Long receiverId) {
         InterestDto interest = interestService.sendInterest(senderId, receiverId);

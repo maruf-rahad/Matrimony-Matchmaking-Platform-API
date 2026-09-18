@@ -16,6 +16,29 @@ public class SearchServiceImpl implements SearchService {
         this.searchRepository = searchRepository;
     }
 
+    /**
+     * Performs a flexible, multi-criteria profile search where every parameter is optional:
+     * a {@code null} value excludes that field from the filter entirely, text fields match as
+     * case-insensitive partial substrings, and the rest (gender, marital status, nationality,
+     * etc.) require an exact match.
+     *
+     * @param name partial, case-insensitive match against profile name
+     * @param minAge inclusive lower bound on age
+     * @param maxAge inclusive upper bound on age
+     * @param gender exact match on gender
+     * @param address partial, case-insensitive match against address
+     * @param education partial, case-insensitive match against education
+     * @param ethnicity partial, case-insensitive match against ethnicity
+     * @param maritalStatus exact match on marital status
+     * @param nationality exact match on nationality
+     * @param secondNationality exact match on second nationality
+     * @param fatherOccupation partial, case-insensitive match against father's occupation
+     * @param motherOccupation partial, case-insensitive match against mother's occupation
+     * @param numberOfSiblings exact match on number of siblings
+     * @param city exact match on city
+     * @param country exact match on country
+     * @return every profile satisfying all supplied (non-null) criteria
+     */
     @Override
     public List<Profile> searchProfiles(
             String name,

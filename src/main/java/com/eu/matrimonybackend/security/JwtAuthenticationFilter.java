@@ -29,6 +29,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
+    /**
+     * Authenticates each incoming request from its Bearer JWT, populating the Spring Security
+     * context so downstream authorization checks (e.g. {@code @PreAuthorize}) can run. Requests
+     * with no token, or an invalid/expired one, are passed through unauthenticated rather than
+     * rejected here, leaving access decisions to the security filter chain and method security.
+     *
+     * @param request the incoming HTTP request, inspected for an {@code Authorization: Bearer} header
+     * @param response the outgoing HTTP response, passed through untouched
+     * @param filterChain the remaining filter chain, always invoked exactly once
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,

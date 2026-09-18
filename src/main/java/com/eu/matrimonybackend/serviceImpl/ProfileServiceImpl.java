@@ -66,6 +66,17 @@ public class ProfileServiceImpl implements ProfileService {
                 .orElseThrow(() -> new ResourceNotFoundException("Profile not found with id: " + id));
     }
 
+    /**
+     * Filters profiles by partner-preference criteria, treating any {@code null} or blank
+     * criteria field as "no filter" for that attribute rather than excluding every profile.
+     * Callers needing viewer-aware privacy masking should use {@link #searchVisibleProfiles}
+     * instead, since this method returns unmasked data.
+     *
+     * @param criteria the filter values (gender, age range, city, education, marital status);
+     *                 unset fields are ignored
+     * @param pageable the requested page number, size, and sort order
+     * @return a page of matching profiles mapped to {@link ProfileDto}
+     */
     @Override
     public Page<ProfileDto> searchProfiles(PartnerPreferenceDto criteria, Pageable pageable) {
         Page<Profile> profilesPage = profileRepository.searchProfiles(
@@ -85,6 +96,18 @@ public class ProfileServiceImpl implements ProfileService {
         return new PageImpl<>(dtos, pageable, profilesPage.getTotalElements());
     }
 
+    /**
+     * Fetches a single profile as it should appear to a specific viewer, hiding private fields
+     * (phone, email, birthday, parents' names/occupations) unless the viewer owns the profile or
+     * has an ACCEPTED interest connection with it.
+     *
+     * @param targetId the ID of the profile being viewed
+     * @param viewerEmail the login email of the requesting user, used to resolve their own
+     *                     profile and relationship to the target; may be {@code null} for an
+     *                     unauthenticated caller, in which case the profile is always masked
+     * @return the target profile, with private fields nulled out unless visibility is earned
+     * @throws com.eu.matrimonybackend.exeptions.ResourceNotFoundException if no profile exists with this ID
+     */
     @Override
     public ProfileDto getVisibleProfileById(Long targetId, String viewerEmail) {
         Profile target = getById(targetId);
@@ -96,6 +119,15 @@ public class ProfileServiceImpl implements ProfileService {
         return dto;
     }
 
+    /**
+     * Lists every profile as it should appear to a specific viewer, applying the same
+     * per-profile private-field masking as {@link #getVisibleProfileById}.
+     *
+     * @param viewerEmail the login email of the requesting user; may be {@code null}, in which
+     *                     case every profile is masked
+     * @return every profile, each individually masked or unmasked based on the viewer's
+     *         relationship to it
+     */
     @Override
     public List<ProfileDto> getAllVisibleProfiles(String viewerEmail) {
         Long viewerProfileId = resolveViewerProfileId(viewerEmail);
@@ -110,6 +142,17 @@ public class ProfileServiceImpl implements ProfileService {
                 .toList();
     }
 
+    /**
+     * Runs {@link #searchProfiles} and then applies the same private-field masking as
+     * {@link #getVisibleProfileById} to every result, so search results respect the viewer's
+     * relationship to each candidate.
+     *
+     * @param criteria the filter values, as in {@link #searchProfiles}
+     * @param pageable the requested page number, size, and sort order
+     * @param viewerEmail the login email of the requesting user; may be {@code null}, in which
+     *                     case every result is masked
+     * @return a page of matching profiles, each individually masked or unmasked
+     */
     @Override
     public Page<ProfileDto> searchVisibleProfiles(PartnerPreferenceDto criteria, Pageable pageable, String viewerEmail) {
         Page<ProfileDto> page = searchProfiles(criteria, pageable);

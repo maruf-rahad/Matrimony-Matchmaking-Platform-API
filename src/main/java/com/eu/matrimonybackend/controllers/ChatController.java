@@ -25,6 +25,13 @@ public class ChatController {
         this.messagingTemplate = messagingTemplate;
     }
 
+    /**
+     * Handles an inbound STOMP chat message: persists it, then fans it out over two WebSocket
+     * topics — the receiver's message stream (to render the message live) and their personal
+     * notification stream (to update their unread-chat badge live).
+     *
+     * @param messageDto the message payload sent by the client to {@code /app/chat.sendMessage}
+     */
     // WebSocket route: Clients send to /app/chat.sendMessage
     @MessageMapping("/chat.sendMessage")
     public void processMessage(@Payload ChatMessageDto messageDto) {

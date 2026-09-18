@@ -81,6 +81,17 @@ public class ProfileController {
 
     private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp", "image/gif");
 
+    /**
+     * Uploads a new profile picture, validating its content type, storing it under
+     * {@code uploads/profile-pictures} with a generated unique filename, and updating the
+     * profile's stored picture URL to point at it.
+     *
+     * @param id the profile ID to update
+     * @param file the uploaded image; must be non-empty and one of JPEG/PNG/WEBP/GIF
+     * @return the updated profile, including its new {@code profilePictureUrl}
+     * @throws IllegalArgumentException if the file is empty or not an accepted image type
+     * @throws IOException if the file cannot be written to disk
+     */
     @PostMapping("/profile/{id}/picture")
     public ProfileDto uploadProfilePicture(@PathVariable Long id, @RequestParam("file") MultipartFile file) throws IOException {
         if (file.isEmpty()) {
