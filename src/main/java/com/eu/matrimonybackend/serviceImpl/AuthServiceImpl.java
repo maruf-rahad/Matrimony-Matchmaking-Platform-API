@@ -9,9 +9,11 @@ import com.eu.matrimonybackend.models.User;
 import com.eu.matrimonybackend.repositories.UserRepository;
 import com.eu.matrimonybackend.security.JwtTokenProvider;
 import com.eu.matrimonybackend.service.AuthService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.util.Set;
 
 @Service
+@Slf4j
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
@@ -52,15 +55,22 @@ public class AuthServiceImpl implements AuthService {
         profile.setEmail(request.getEmail());
         user.setProfile(profile);
 
-        userRepository.save(user);
+        User saved = userRepository.save(user);
+        log.info("User account created with ID: {}", saved.getId());
         return "User registered successfully!";
     }
 
     @Override
     public AuthResponseDto login(LoginRequestDto request) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+        } catch (AuthenticationException ex) {
+            log.warn("Failed login attempt for username: {}", request.getEmail());
+            throw ex;
+        }
 
         String token = tokenProvider.generateToken(authentication);
         return new AuthResponseDto(token);

@@ -17,6 +17,7 @@ import com.eu.matrimonybackend.repositories.PartnerPreferenceRepository;
 import com.eu.matrimonybackend.repositories.ProfileRepository;
 import com.eu.matrimonybackend.repositories.UserRepository;
 import com.eu.matrimonybackend.service.AdminService;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 @Service
+@Slf4j
 public class AdminServiceImpl implements AdminService {
 
     private final UserRepository userRepository;
@@ -82,11 +84,13 @@ public class AdminServiceImpl implements AdminService {
 
         userRepository.findByProfileId(id)
                 .ifPresentOrElse(userRepository::delete, () -> profileRepository.delete(profile));
+        log.info("Admin deleted user profile: {}", id);
     }
 
     @Override
     public AdminUserDto createAdmin(CreateAdminRequestDto request) {
         User user = userRepository.findByEmail(request.getEmail()).orElse(null);
+        boolean isNewAccount = user == null;
 
         if (user != null) {
             Set<Role> roles = new HashSet<>(user.getRoles());
@@ -107,8 +111,9 @@ public class AdminServiceImpl implements AdminService {
             user.setProfile(profile);
         }
 
-        userRepository.save(user);
-        return toUserDto(user);
+        User saved = userRepository.save(user);
+        log.info("{} granted ROLE_ADMIN to user ID: {}", isNewAccount ? "New admin account created and" : "Existing user", saved.getId());
+        return toUserDto(saved);
     }
 
     @Override
@@ -130,6 +135,7 @@ public class AdminServiceImpl implements AdminService {
         }
         user.setRoles(roles);
         userRepository.save(user);
+        log.info("Admin privileges revoked for user ID: {}", userId);
     }
 
     private Profile getProfileOrThrow(Long id) {

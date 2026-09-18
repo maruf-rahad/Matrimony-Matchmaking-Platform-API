@@ -8,6 +8,7 @@ import com.eu.matrimonybackend.models.Profile;
 import com.eu.matrimonybackend.repositories.InterestRepository;
 import com.eu.matrimonybackend.repositories.ProfileRepository;
 import com.eu.matrimonybackend.service.InterestService;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@Slf4j
 public class InterestServiceImpl implements InterestService {
 
     private final InterestRepository interestRepository;
@@ -48,7 +50,9 @@ public class InterestServiceImpl implements InterestService {
         interest.setSeen(false);
         interest.setCreatedAt(LocalDateTime.now());
 
-        return modelMapper.map(interestRepository.save(interest), InterestDto.class);
+        Interest saved = interestRepository.save(interest);
+        log.info("Interest sent from profile {} to profile {}", senderId, receiverId);
+        return modelMapper.map(saved, InterestDto.class);
     }
 
     @Override
@@ -59,7 +63,9 @@ public class InterestServiceImpl implements InterestService {
         interest.setStatus(status);
         interest.setUpdatedAt(LocalDateTime.now());
 
-        return modelMapper.map(interestRepository.save(interest), InterestDto.class);
+        Interest saved = interestRepository.save(interest);
+        log.info("Interest {} status changed to {}", interestId, status);
+        return modelMapper.map(saved, InterestDto.class);
     }
 
     @Override

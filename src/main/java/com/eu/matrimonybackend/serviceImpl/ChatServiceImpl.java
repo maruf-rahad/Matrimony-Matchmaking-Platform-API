@@ -10,6 +10,7 @@ import com.eu.matrimonybackend.repositories.InterestRepository;
 import com.eu.matrimonybackend.repositories.ProfileRepository;
 import com.eu.matrimonybackend.repositories.projections.UnreadCountBySender;
 import com.eu.matrimonybackend.service.ChatService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class ChatServiceImpl implements ChatService {
 
     private final ChatMessageRepository chatMessageRepository;
@@ -43,6 +45,7 @@ public class ChatServiceImpl implements ChatService {
                 interestRepository.existsBySenderIdAndReceiverIdAndStatus(receiverId, senderId, InterestStatus.ACCEPTED);
 
         if (!isConnected) {
+            log.warn("Rejected chat message: no ACCEPTED interest connection between profiles {} and {}", senderId, receiverId);
             throw new IllegalArgumentException("Cannot send message. You must have an ACCEPTED interest connection with this profile.");
         }
 
