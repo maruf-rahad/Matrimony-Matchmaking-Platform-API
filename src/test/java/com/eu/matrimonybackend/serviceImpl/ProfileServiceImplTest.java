@@ -2,8 +2,10 @@ package com.eu.matrimonybackend.serviceImpl;
 
 import com.eu.matrimonybackend.dto.PartnerPreferenceDto;
 import com.eu.matrimonybackend.dto.ProfileDto;
+import com.eu.matrimonybackend.enums.InterestStatus;
 import com.eu.matrimonybackend.exeptions.ResourceNotFoundException;
 import com.eu.matrimonybackend.models.Profile;
+import com.eu.matrimonybackend.repositories.InterestRepository;
 import com.eu.matrimonybackend.repositories.ProfileRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +30,9 @@ class ProfileServiceImplTest {
 
     @Mock
     private ProfileRepository profileRepository;
+
+    @Mock
+    private InterestRepository interestRepository;
 
     @InjectMocks
     private ProfileServiceImpl profileService;
@@ -159,6 +164,77 @@ class ProfileServiceImplTest {
 
         assertEquals(1, result.getTotalElements());
         assertEquals("Maruf", result.getContent().get(0).getName());
+    }
+
+    @Test
+    void getVisibleProfileById_MasksPrivateFieldsForUnrelatedViewer() {
+        Profile target = getProfile();
+        ProfileDto fullDto = fullProfileDto();
+
+        when(profileRepository.findById(1L)).thenReturn(Optional.of(target));
+        when(modelMapper.map(target, ProfileDto.class)).thenReturn(fullDto);
+        when(profileRepository.findByEmail("stranger@example.com")).thenReturn(Optional.empty());
+
+        ProfileDto result = profileService.getVisibleProfileById(1L, "stranger@example.com");
+
+        assertEquals("Maruf", result.getName());
+        assertNull(result.getEmail());
+        assertNull(result.getPhone());
+        assertNull(result.getBirthday());
+        assertNull(result.getFatherName());
+        assertNull(result.getFatherOccupation());
+        assertNull(result.getMotherName());
+        assertNull(result.getMotherOccupation());
+    }
+
+    @Test
+    void getVisibleProfileById_ShowsFullDataForSelf() {
+        Profile target = getProfile();
+        ProfileDto fullDto = fullProfileDto();
+
+        when(profileRepository.findById(1L)).thenReturn(Optional.of(target));
+        when(modelMapper.map(target, ProfileDto.class)).thenReturn(fullDto);
+        when(profileRepository.findByEmail("maruf@example.com")).thenReturn(Optional.of(target));
+
+        ProfileDto result = profileService.getVisibleProfileById(1L, "maruf@example.com");
+
+        assertEquals("maruf@example.com", result.getEmail());
+        assertNotNull(result.getPhone());
+        assertNotNull(result.getFatherName());
+    }
+
+    @Test
+    void getVisibleProfileById_ShowsFullDataForAcceptedConnection() {
+        Profile target = getProfile();
+        Profile viewerProfile = getProfile2();
+        ProfileDto fullDto = fullProfileDto();
+
+        when(profileRepository.findById(1L)).thenReturn(Optional.of(target));
+        when(modelMapper.map(target, ProfileDto.class)).thenReturn(fullDto);
+        when(profileRepository.findByEmail("rahad@example.com")).thenReturn(Optional.of(viewerProfile));
+        when(interestRepository.existsBySenderIdAndReceiverIdAndStatus(2L, 1L, InterestStatus.ACCEPTED)).thenReturn(true);
+
+        ProfileDto result = profileService.getVisibleProfileById(1L, "rahad@example.com");
+
+        assertNotNull(result.getEmail());
+        assertNotNull(result.getPhone());
+        assertNotNull(result.getFatherName());
+    }
+
+    private ProfileDto fullProfileDto() {
+        ProfileDto dto = new ProfileDto();
+        dto.setId(1L);
+        dto.setName("Maruf");
+        dto.setAge(28L);
+        dto.setGender("Male");
+        dto.setBirthday(LocalDate.of(1997, 5, 20).toString());
+        dto.setEmail("maruf@example.com");
+        dto.setPhone("0123456789");
+        dto.setFatherName("Father Name");
+        dto.setFatherOccupation("Engineer");
+        dto.setMotherName("Mother Name");
+        dto.setMotherOccupation("Teacher");
+        return dto;
     }
 
     ProfileDto getProfileDto() {

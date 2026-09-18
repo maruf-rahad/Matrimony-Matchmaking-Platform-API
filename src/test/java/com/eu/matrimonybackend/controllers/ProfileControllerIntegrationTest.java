@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -57,6 +58,9 @@ class ProfileControllerIntegrationTest {
 
     @Test
     void testGetAllProfiles() throws Exception {
+        // @WithMockUser has no matching Profile and no ACCEPTED interest with either
+        // saved profile, so private fields (phone, email, birthday, parents' info) must
+        // be masked while the rest of the biodata stays visible.
         mockMvc.perform(get("/profile")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -64,54 +68,55 @@ class ProfileControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].name").value("John Doe"))
                 .andExpect(jsonPath("$[0].age").value(30))
                 .andExpect(jsonPath("$[0].gender").value("Male"))
-                .andExpect(jsonPath("$[0].birthday").value("1993-01-01"))
+                .andExpect(jsonPath("$[0].birthday").value(nullValue()))
                 .andExpect(jsonPath("$[0].address").value("123 Street, City"))
                 .andExpect(jsonPath("$[0].height").value(180.5))
                 .andExpect(jsonPath("$[0].weight").value(75.0))
-                .andExpect(jsonPath("$[0].email").value("john@example.com"))
-                .andExpect(jsonPath("$[0].phone").value("1234567890"))
+                .andExpect(jsonPath("$[0].email").value(nullValue()))
+                .andExpect(jsonPath("$[0].phone").value(nullValue()))
                 .andExpect(jsonPath("$[0].education").value("Bachelor"))
                 .andExpect(jsonPath("$[0].ethnicity").value("Asian"))
                 .andExpect(jsonPath("$[0].maritalStatus").value("Single"))
                 .andExpect(jsonPath("$[0].nationality").value("American"))
                 .andExpect(jsonPath("$[0].secondNationality").value("Canadian"))
-                .andExpect(jsonPath("$[0].motherName").value("Mary Doe"))
-                .andExpect(jsonPath("$[0].fatherName").value("Robert Doe"))
-                .andExpect(jsonPath("$[0].fatherOccupation").value("Engineer"))
-                .andExpect(jsonPath("$[0].motherOccupation").value("Teacher"))
+                .andExpect(jsonPath("$[0].motherName").value(nullValue()))
+                .andExpect(jsonPath("$[0].fatherName").value(nullValue()))
+                .andExpect(jsonPath("$[0].fatherOccupation").value(nullValue()))
+                .andExpect(jsonPath("$[0].motherOccupation").value(nullValue()))
                 .andExpect(jsonPath("$[0].numberOfSiblings").value("2"))
 
                 .andExpect(jsonPath("$[1].name").value("Jane Smith"))
                 .andExpect(jsonPath("$[1].age").value(28))
                 .andExpect(jsonPath("$[1].gender").value("Female"))
-                .andExpect(jsonPath("$[1].birthday").value("1995-02-15"))
+                .andExpect(jsonPath("$[1].birthday").value(nullValue()))
                 .andExpect(jsonPath("$[1].address").value("456 Avenue, Town"))
                 .andExpect(jsonPath("$[1].height").value(165.0))
                 .andExpect(jsonPath("$[1].weight").value(60.0))
-                .andExpect(jsonPath("$[1].email").value("jane@example.com"))
-                .andExpect(jsonPath("$[1].phone").value("9876543210"))
+                .andExpect(jsonPath("$[1].email").value(nullValue()))
+                .andExpect(jsonPath("$[1].phone").value(nullValue()))
                 .andExpect(jsonPath("$[1].education").value("Master"))
                 .andExpect(jsonPath("$[1].ethnicity").value("European"))
                 .andExpect(jsonPath("$[1].maritalStatus").value("Married"))
                 .andExpect(jsonPath("$[1].nationality").value("British"))
                 .andExpect(jsonPath("$[1].secondNationality").value("French"))
-                .andExpect(jsonPath("$[1].motherName").value("Anna Smith"))
-                .andExpect(jsonPath("$[1].fatherName").value("James Smith"))
-                .andExpect(jsonPath("$[1].fatherOccupation").value("Doctor"))
-                .andExpect(jsonPath("$[1].motherOccupation").value("Nurse"))
+                .andExpect(jsonPath("$[1].motherName").value(nullValue()))
+                .andExpect(jsonPath("$[1].fatherName").value(nullValue()))
+                .andExpect(jsonPath("$[1].fatherOccupation").value(nullValue()))
+                .andExpect(jsonPath("$[1].motherOccupation").value(nullValue()))
                 .andExpect(jsonPath("$[1].numberOfSiblings").value("1"));
     }
 
     @Test
     void testGetProfileById_Success() throws Exception {
+        // Same anonymous-viewer masking as testGetAllProfiles applies here.
         mockMvc.perform(get("/profile/{id}", savedProfile.get(0).getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("John Doe"))
                 .andExpect(jsonPath("$.age").value(30))
                 .andExpect(jsonPath("$.gender").value("Male"))
-                .andExpect(jsonPath("$.email").value("john@example.com"))
-                .andExpect(jsonPath("$.phone").value("1234567890"));
+                .andExpect(jsonPath("$.email").value(nullValue()))
+                .andExpect(jsonPath("$.phone").value(nullValue()));
     }
 
     @Test
@@ -222,7 +227,7 @@ class ProfileControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
                 .andExpect(jsonPath("$.content[0].name").value("John Doe"))
-                .andExpect(jsonPath("$.content[0].email").value("john@example.com"));
+                .andExpect(jsonPath("$.content[0].email").value(nullValue()));
     }
 
     @Test

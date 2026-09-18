@@ -24,6 +24,15 @@ public class ProfileDto {
     private String numberOfSiblings;
     private String city;
     private String country;
+    private String profilePictureUrl;
+
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
+    }
 
     public Long getId() {
         return id;

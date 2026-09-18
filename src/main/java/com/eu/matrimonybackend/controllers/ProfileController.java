@@ -12,10 +12,17 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @RestController
 @Tag(name = "Profile Apis", description = "create, get, update, delete")
@@ -31,21 +38,13 @@ public class ProfileController {
 
 
     @GetMapping("/profile")
-    public List<ProfileDto> getAllProfiles() {
-        List<Profile> profiles = new ArrayList<Profile>();
-        profiles = profileService.getAllProfiles();
-        return profiles.stream()
-                .map(
-                        profile -> modelMapper.map(profile, ProfileDto.class)
-                ).toList();
+    public List<ProfileDto> getAllProfiles(Authentication authentication) {
+        return profileService.getAllVisibleProfiles(authentication.getName());
     }
 
     @GetMapping("/profile/{id}")
-    public ProfileDto getProfileById(@PathVariable Long id) {
-
-        return modelMapper.map(
-                profileService.getProfileById(id), ProfileDto.class
-        );
+    public ProfileDto getProfileById(@PathVariable Long id, Authentication authentication) {
+        return profileService.getVisibleProfileById(id, authentication.getName());
     }
 
     @PostMapping("/profile")
@@ -75,7 +74,41 @@ public class ProfileController {
     @PostMapping("/profile/search")
     public ResponseEntity<Page<ProfileDto>> searchProfiles(
             @RequestBody PartnerPreferenceDto criteria,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(profileService.searchProfiles(criteria, pageable));
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            Authentication authentication) {
+        return ResponseEntity.ok(profileService.searchVisibleProfiles(criteria, pageable, authentication.getName()));
+    }
+
+    private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp", "image/gif");
+
+    @PostMapping("/profile/{id}/picture")
+    public ProfileDto uploadProfilePicture(@PathVariable Long id, @RequestParam("file") MultipartFile file) throws IOException {
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("No file was uploaded.");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
+            throw new IllegalArgumentException("Only JPEG, PNG, WEBP, or GIF images are allowed.");
+        }
+
+        Profile existingProfile = profileService.getProfileById(id);
+
+        String extension = switch (contentType) {
+            case "image/png" -> ".png";
+            case "image/webp" -> ".webp";
+            case "image/gif" -> ".gif";
+            default -> ".jpg";
+        };
+        String filename = "profile-" + id + "-" + UUID.randomUUID() + extension;
+
+        Path uploadDir = Paths.get("uploads", "profile-pictures");
+        Files.createDirectories(uploadDir);
+        file.transferTo(uploadDir.resolve(filename));
+
+        existingProfile.setProfilePictureUrl("/uploads/profile-pictures/" + filename);
+        Profile updated = profileService.updateProfile(id, existingProfile);
+
+        return modelMapper.map(updated, ProfileDto.class);
     }
 }

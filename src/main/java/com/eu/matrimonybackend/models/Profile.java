@@ -37,6 +37,15 @@ public class Profile extends BaseModel{
     private String numberOfSiblings;
     private String city;
     private String country;
+    private String profilePictureUrl;
+
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
+    }
 
     public String getCity() {
         return city;
