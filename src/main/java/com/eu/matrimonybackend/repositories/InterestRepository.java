@@ -18,4 +18,6 @@ public interface InterestRepository extends JpaRepository<Interest, Long> {
     boolean existsBySenderIdAndReceiverIdAndStatus(Long senderId, Long receiverId, InterestStatus status);
 
     List<Interest> findByReceiverIdAndStatus(Long receiverId, InterestStatus status);
+
+    List<Interest> findBySenderIdOrReceiverId(Long senderId, Long receiverId);
 }
